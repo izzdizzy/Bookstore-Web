@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Staff Dashboard</h1>
+
+    <!-- Ebooks Section -->
+    <div class="card shadow-lg p-4 mb-4 short-card">
+        <h5 class="text-center mb-3">Ebooks</h5>
+
+        <div class="text-center">
+            <a href="{{ url_for('create_ebook') }}" class="btn btn-primary me-2">Create Ebook</a>
+            <a href="{{ url_for('retrieve_ebooks') }}" class="btn btn-primary me-2">Retrieve Ebooks</a>
+        </div>
+    </div>
+
+    <!-- Cards Section -->
+    <div class="card shadow-lg p-4 mb-4 short-card">
+        <h5 class="text-center mb-3">Cards</h5>
+
+        <div class="text-center">
+            {% if role in ['Owner', 'Co-owner'] %}
+            <a href="{{ url_for('create_card') }}" class="btn btn-primary me-2">Create Card</a>
+            <a href="{{ url_for('retrieve_cards') }}" class="btn btn-primary me-2">Retrieve Cards</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Users Section -->
+   <div class="card shadow-lg p-4 mb-4 short-card">
+        <h5 class="text-center mb-3">Users</h5>
+
+        <div class="text-center">
+            {% if role in ['Owner', 'Co-owner'] %}
+            <a href="{{ url_for('user_management') }}" class="btn btn-primary me-2">User Management</a>
+            {% endif %}
+            {% if role in ['Owner'] %}
+            <a href="{{ url_for('create_user') }}" class="btn btn-primary me-2">Create Accounts</a>
+            {% endif %}
+            <a href="{{ url_for('transaction_history') }}" class="btn btn-primary me-2">Transaction History</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Transaction History{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="mt-3">
+        <button onclick="goBack()" class="btn btn-secondary">Back</button>
+    </div>
+    <h1 class="text-center mb-4">Transaction History</h1>
+
+    <!-- Filter Form -->
+    <form method="GET" action="{{ url_for('transaction_history') }}" class="mb-4">
+        <div class="p-3 rounded" style="background-color: rgba(169, 169, 169, 0.2);">
+            <div class="row gx-2 gy-2">
+                <!-- Left side filters -->
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2" style="gap: 5px;">
+                        <label for="transaction_id" class="form-label me-3 mb-0" style="white-space: nowrap;">Transaction ID</label>
+                        <input type="number" class="form-control form-control-sm" id="transaction_id" name="transaction_id"
+                               value="{{ filter_transaction_id if filter_transaction_id else '' }}" min="0" style="width: 350px;">
+                    </div>
+                    {% if role in ['Staff', 'Owner', 'Co-owner'] %}
+                    <div class="d-flex align-items-center mb-2" style="gap: 20px;">
+                        <label for="user_id" class="form-label me-5 mb-0" style="white-space: nowrap;">User ID</label>
+                        <input type="number" class="form-control form-control-sm" id="user_id" name="user_id"
+                               value="{{ filter_user_id if filter_user_id else '' }}" min="0" style="width: 350px;">
+                    </div>
+                    {% endif %}
+                    <div class="d-flex align-items-center mb-2">
+                        <label for="username" class="form-label me-5 mb-0" style="white-space: nowrap;">Username</label>
+                        <input type="text" class="form-control form-control-sm" id="username" name="username"
+                               value="{{ filter_username if filter_username else '' }}" style="width: 350px;">
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <label for="book_title" class="form-label me-5 mb-0" style="white-space: nowrap;">Book Title</label>
+                        <input type="text" class="form-control form-control-sm" id="book_title" name="book_title"
+                               value="{{ filter_book_title if filter_book_title else '' }}" style="width: 350px;">
+                    </div>
+                </div>
+
+                <!-- Right side filters -->
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-2" style="gap: 6px;">
+                        <label for="amount_paid_min" class="form-label me-5 mb-0" style="white-space: nowrap;">Amount Paid</label>
+                        <input type="number" step="0.01" class="form-control form-control-sm" id="amount_paid_min"
+                               name="amount_paid_min" placeholder="Min" value="{{ filter_amount_paid_min if filter_amount_paid_min else '' }}" min="0">
+                        <span class="mx-1">-</span>
+                        <input type="number" step="0.01" class="form-control form-control-sm" id="amount_paid_max"
+                               name="amount_paid_max" placeholder="Max" value="{{ filter_amount_paid_max if filter_amount_paid_max else '' }}" min="0">
+                    </div>
+                    <div class="d-flex align-items-center mb-2" style="gap: 3px;">
+                        <label for="transaction_date_start" class="form-label me-4 mb-0" style="white-space: nowrap;">Transaction Date</label>
+                        <input type="date" class="form-control form-control-sm" id="transaction_date_start"
+                               name="transaction_date_start" value="{{ filter_transaction_date_start if filter_transaction_date_start else '' }}">
+                        <span class="mx-1">-</span>
+                        <input type="date" class="form-control form-control-sm" id="transaction_date_end"
+                               name="transaction_date_end" value="{{ filter_transaction_date_end if filter_transaction_date_end else '' }}">
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <label for="refund_status" class="form-label me-5 mb-0" style="white-space: nowrap;">Refund Status</label>
+                        <select class="form-select form-select-sm" id="refund_status" name="refund_status">
+                            <option value="" {% if not filter_refund_status %}selected{% endif %}>All</option>
+                            <option value="Refunded" {% if filter_refund_status =='Refunded' %}selected{% endif %}>Refunded</option>
+                            <option value="Not Refunded" {% if filter_refund_status =='NotRefunded' %}selected{% endif %}>Not Refunded</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 text-center">
+                <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                <a href="{{ url_for('transaction_history') }}" class="btn btn-secondary btn-sm">Clear Filters</a>
+            </div>
+        </div>
+    </form>
+
+    <!-- Display flashed messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div>
+        {% if transactions|length == 0 %}
+        <p class="text-center">No transactions found.</p>
+        {% else %}
+        <p class="text-center">Total transactions: {{ transactions|length }}</p>
+        {% endif %}
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>Transaction ID</th>
+                {% if role in ['Staff', 'Owner', 'Co-owner'] %}
+                <th>User ID</th>
+                {% endif %}
+                <th>Username</th>
+                <th>Book Title</th>
+                <th>Amount Paid</th>
+                <th>Date</th>
+                <th>Refund Status</th>
+                {% if role in ['Staff', 'Owner', 'Co-owner'] %}
+                <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr class="{% if transaction.get_refund_status() == 'Refunded' %}table-success{% endif %}">
+                <td>{{ transaction.get_transaction_id() }}</td>
+                {% if role in ['Staff', 'Owner', 'Co-owner'] %}
+                <td>{{ transaction.get_user_id() }}</td>
+                {% endif %}
+                <td>{{ transaction.get_username() }}</td>
+                <td>{{ transaction.get_title() }}</td>
+                <td>${{ "%.2f"|format(transaction.get_amount_paid()) }}</td>
+                <td>{{ transaction.get_timestamp().strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ transaction.get_refund_status() }}</td>
+                {% if role in ['Staff', 'Owner', 'Co-owner'] %}
+                <td>
+                    {% if transaction.get_refund_status() == "Not Refunded" %}
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#refundModal{{ transaction.get_transaction_id() }}">
+                        Refund
+                    </button>
+                    <!-- Modal -->
+                    <div class="modal fade" id="refundModal{{ transaction.get_transaction_id() }}" tabindex="-1" aria-labelledby="refundModalLabel{{ transaction.get_transaction_id() }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="refundModalLabel{{ transaction.get_transaction_id() }}">Refund Confirmation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to refund "{{ transaction.get_title() }}" for ${{ "%.2f"|format(transaction.get_amount_paid()) }}?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <form action="{{ url_for('process_refund', transaction_id=transaction.get_transaction_id()) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger">Confirm Refund</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+{% endblock %}
