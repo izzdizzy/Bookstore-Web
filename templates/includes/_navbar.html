@@ -23,7 +23,9 @@
                 <li class="nav-item">
                     <a class="nav-link text-white" href="/Store">Store</a>
                 </li>
+                 {% if 'role' in session and session['role'] in ['User', 'Staff', 'Co-owner', 'Owner'] %}
                 <li><a class="nav-link text-white" href="/inventory">Inventory</a></li>
+                {% endif %}
             </ul>
             <!-- Right-aligned navbar items -->
             <ul class="navbar-nav ms-auto">

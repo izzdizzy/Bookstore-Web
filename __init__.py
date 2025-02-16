@@ -1623,11 +1623,7 @@ def transaction_history():
 
     # Filter transactions based on user role
     if role in ['Staff', 'Owner', 'Co-owner']:
-        # Owner sees only their transactions
-        if role == 'Owner':
-            transactions_list = [t for t in transactions_dict.values() if t.get_user_id() == user_id]
-        else:
-            transactions_list = list(transactions_dict.values())
+        transactions_list = list(transactions_dict.values())
     else:
         # Regular users can only view their own transactions
         transactions_list = [t for t in transactions_dict.values() if t.get_user_id() == user_id]
