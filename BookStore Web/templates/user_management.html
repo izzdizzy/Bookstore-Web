@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="mt-3">
+
+        <a href="/staff" class="btn btn-primary">Staff Page</a>
+
+    </div>
+    <h1 class="text-center mb-4">User Management</h1>
+
+
+    <div class="border p-4 rounded shadow-sm bg-light mb-4">
+        <h5 class="mb-3">Filter Users</h5>
+        <form method="GET" action="{{ url_for('user_management') }}">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="user_id" class="form-label">User ID</label>
+                    <input type="number" class="form-control" id="user_id" name="user_id" value="{{ filter_user_id if filter_user_id else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" value="{{ filter_username if filter_username else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="text" class="form-control" id="email" name="email" value="{{ filter_email if filter_email else '' }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role" name="role">
+                        <option value="" {% if not filter_role %}selected{% endif %}>All</option>
+                        <option value="User" {% if filter_role == 'User' %}selected{% endif %}>User</option>
+                        <option value="Staff" {% if filter_role == 'Staff' %}selected{% endif %}>Staff</option>
+                        <option value="Co-owner" {% if filter_role == 'Co-owner' %}selected{% endif %}>Co-owner</option>
+                        <option value="Owner" {% if filter_role == 'Owner' %}selected{% endif %}>Owner</option>
+
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{{ url_for('user_management') }}" class="btn btn-secondary">Clear Filters</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- User Table -->
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.get_user_id() }}</td>
+                <td>{{ user.get_username() }}</td>
+                <td>{{ user.get_email() }}</td>
+                <td>{{ user.get_role() }}</td>
+                <td>
+                    <!-- Update User Button -->
+                    <a href="{{ url_for('update_user', user_id=user.get_user_id()) }}" class="btn btn-primary btn-sm text-strong">Update</a>
+
+                    <!-- Delete User Button with Modal Confirmation -->
+                    {% if session['role'] in ['Owner', 'Co-owner'] %}
+                    <!-- Button to trigger the modal -->
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ user.get_user_id() }}">
+                        Delete
+                    </button>
+                    <!-- Modal -->
+                    <div class="modal fade" id="deleteModal{{ user.get_user_id() }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ user.get_user_id() }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel{{ user.get_user_id() }}">Delete Confirmation</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure you want to delete the user "{{ user.get_username() }}"?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <!-- Form for deleting the user -->
+                                    <form action="{{ url_for('delete_user', user_id=user.get_user_id()) }}" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+</div>
+
+{% endblock %}
+

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Create Card{% endblock %}
+
+{% block content %}
+<div class="mt-3">
+
+    <a href="/staff" class="btn btn-primary">Staff Page</a>
+
+</div>
+<div class="d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow p-4" style="width: 30rem;">
+        <h2 class="text-center mb-4">Create Card</h2>
+
+        <!-- Display flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('create_card') }}">
+            <div class="form-group mb-3">
+                <label for="first_name" class="form-label">First Name</label>
+                <input type="text" id="first_name" name="first_name" class="form-control" required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="last_name" class="form-label">Last Name</label>
+                <input type="text" id="last_name" name="last_name" class="form-control" required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="card_number" class="form-label">Card Number</label>
+                <input type="text" id="card_number" name="card_number" class="form-control"
+                       pattern="^(4|5[1-5]|2|3)\d{15}$"
+                       title="Card number must start with 4 (VISA), 2/5 (Mastercard), or 3 (American Express) and be 16 digits long."
+                       required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="expiry_date" class="form-label">Expiry Date</label>
+                <input type="date" id="expiry_date" name="expiry_date" class="form-control"
+                       min="2025-01-01"
+                       title="Expiry date must be after 2025."
+                       required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="cvc_number" class="form-label">CVC Number</label>
+                <input type="text" id="cvc_number" name="cvc_number" class="form-control"
+                       pattern="\d{3}"
+                       title="CVC must be exactly 3 digits long."
+                       required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Create</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

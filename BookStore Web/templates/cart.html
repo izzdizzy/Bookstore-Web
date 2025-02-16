@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Cart Page{% endblock %}
+{% block content %}
+<div class="mt-3">
+    <button onclick="goBack()" class="btn btn-secondary">Back</button>
+</div>
+<div class="container">
+    <h1 class="display-4">Your Cart</h1>
+    <div>
+        {% if is_empty %}
+        <div class="alert alert-info" role="alert">
+            Your cart is empty. <a href="{{ url_for('store') }}" class="alert-link">Browse the store</a> to add some books!
+        </div>
+        {% else %}
+    </div>
+    <div class="row">
+        {% for ebook in ebooks_list %}
+        <div class="col-md-3 mb-4">
+            <a href="{{ url_for('reviews', id=ebook.get_ebook_id()) }}" class="text-decoration-none text-dark card-link">
+                <div class="card h-100 shadow-sm">
+                    <!-- Image Container -->
+                    <div style="width: 100%; overflow: hidden;">
+                        {% if ebook.get_image() %}
+                        <img src="{{ url_for('static', filename=ebook.get_image().replace('static/', '')) }}" class="card-img-top" alt="{{ ebook.get_title() }}" height="350" width="200">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='placeholder.jpg') }}" class="card-img-top" alt="No Image" height="350" width="200">
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title text-center fs-6">{{ ebook.get_title() }}</h5>
+                        <p class="card-text text-center text-muted mb-1">{{ ebook.get_author() }}</p>
+                        <p class="card-text text-center text-muted mb-1">{{ ebook.get_genre() }}</p>
+                        <h6 class="card-text text-center mb-1">${{ ebook.get_price() }}</h6>
+                        <!-- Display average rating and total reviews -->
+                        <p class="card-text text-center mb-1">
+                            {% for i in range(ebook.average_rating|int) %}
+                            ⭐
+                            {% endfor %}
+                            {% if ebook.average_rating % 1 >= 0.5 %}
+                            ⭐
+                            {% endif %}
+                        </p>
+                        <p class="text-center card-text mb-1">({{ ebook.total_reviews }} review{% if ebook.total_reviews != 1 %}s{% endif %})</p>
+                        <p class="text-center text-muted">Click for details!</p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <!-- Delete Button -->
+                        <form action="{{ url_for('delete_from_cart', id=ebook.get_ebook_id()) }}" method="POST">
+                            <button type="submit" class="btn btn-danger btn-block w-100">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    <!-- Proceed to Checkout Button -->
+    {% if ebooks_list|length > 0 %}
+    <div class="text-center mt-4">
+        <a href="{{ url_for('payment') }}" class="btn btn-success btn-lg">Proceed to Checkout</a>
+    </div>
+    {% endif %}
+</div>
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>
+{% endif %}
+{% endblock %}
